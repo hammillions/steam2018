@@ -276,7 +276,7 @@ var INJECT_start_round = function(zone, access_token, attempt_no) {
 				}
 			}
 			else {
-				console.log("Round successfully started in zone #" + zone);
+				console.log("Раунд успішно запущено в зоні #" + zone);
 				console.log(data);
 
 				// Set target
@@ -389,8 +389,8 @@ var INJECT_end_round = function(attempt_no) {
 				}
 			}
 			else {
-				console.log("Successfully finished the round and got expected data back:");
-				console.log("Level: ", data.response.new_level, "\nEXP: ", data.response.new_score);
+				console.log("Успішно завершено раунд та отримано оновлені дані:");
+				console.log("Рівень: ", data.response.new_level, "\nEXP: ", data.response.new_score);
 				console.log(data);
 
 				// Update the player info
@@ -491,7 +491,7 @@ var INJECT_update_grid = function(error_handling) {
 			return;
 	}
 
-	gui.updateTask('Updating grid', true);
+	gui.updateTask('Оновлення сітки', true);
 
 	// GET to the endpoint
 	$J.ajax({
