@@ -54,13 +54,13 @@ class BotGUI {
 			'<div id="salienbot_gui" style="background: #191919; z-index: 1; border: 3px solid #83d674; padding: 20px; margin: 15px; width: 300px; transform: translate(0, 0);">',
 				'<h1 style="text-align:center;">Слава Україні! Героям слава!!!</h1><h3>Приєднуйтесь до <a target="_blank" href="https://steamcommunity.com/groups/ukraine">групи "Ukraine"</a> та виставляйте її значок у грі, щоб майорів наш стяг.</h3>',
 				'<p style="margin-top: -.8em; font-size: .75em"><span id="salienbot_status"></span></p>', // Running or stopped
-				'<p><b>Task:</b> <span id="salienbot_task">Initializing</span></p>', // Current task
-				`<p><b>Target Zone:</b> <span id="salienbot_zone">None</span></p>`,
-				`<p style="display: none;" id="salienbot_zone_difficulty_div"><b>Zone Difficulty:</b> <span id="salienbot_zone_difficulty"></span> (<span id="salienbot_zone_score"></span>xp/round)</p>`,
-				'<p><b>Level:</b> <span id="salienbot_level">' + this.state.level + '</span> &nbsp;&nbsp;&nbsp;&nbsp; <b>EXP:</b> <span id="salienbot_exp">' + this.state.exp + " / " + this.state.next_level_exp + '</span></p>',
-				'<p><b>Lvl Up In:</b> <span id="salienbot_esttimlvl"></span></p>',
-				'<p><input id="planetSwitchCheckbox" type="checkbox"/> Automatic Planet Switching</p>',
-				'<p><input id="animationsCheckbox" type="checkbox"/> Hide Game (Improves Performance)</p>',
+				'<p><b>Таймер:</b> <span id="salienbot_task">Initializing</span></p>', // Current task
+				`<p><b>Цільова зона:</b> <span id="salienbot_zone">None</span></p>`,
+				`<p style="display: none;" id="salienbot_zone_difficulty_div"><b>Складність зони:</b> <span id="salienbot_zone_difficulty"></span> (<span id="salienbot_zone_score"></span>xp за бій)</p>`,
+				'<p><b>Рівень:</b> <span id="salienbot_level">' + this.state.level + '</span> &nbsp;&nbsp;&nbsp;&nbsp; <b>ОД:</b> <span id="salienbot_exp">' + this.state.exp + " / " + this.state.next_level_exp + '</span></p>',
+				'<p><b>Lvl Up через:</b> <span id="salienbot_esttimlvl"></span></p>',
+				'<p><input id="planetSwitchCheckbox" type="checkbox"/> Автоматично змінювати планету</p>',
+				'<p><input id="animationsCheckbox" type="checkbox"/> Приховати карту гри (Покращує продуктивність)</p>',
 			'</div>'
 		].join(''))
 
@@ -74,7 +74,7 @@ class BotGUI {
 	}
 
 	updateStatus(running) {
-		const statusTxt = running ? '<span style="color: green;">✓ Running</span>' : '<span style="color: red;">✗ Stopped</span>';
+		const statusTxt = running ? '<span style="color: green;">✓ Запущено</span>' : '<span style="color: red;">✗ Зупинено</span>';
 
 		$J('#salienbot_status').html(statusTxt);
 	}
@@ -105,13 +105,13 @@ class BotGUI {
 
 		var timeTxt = "";
 		if(days > 0)
-			timeTxt += days + "d ";
+			timeTxt += days + "дн ";
 		if(hours > 0 || timeTxt.length > 0)
-			timeTxt += hours + "h ";
+			timeTxt += hours + "год ";
 		if(minutes > 0 || timeTxt.length > 0)
-			timeTxt += minutes + "m ";
+			timeTxt += minutes + "хв ";
 
-		timeTxt += seconds + "s";
+		timeTxt += seconds + "сек";
 
 		document.getElementById('salienbot_esttimlvl').innerText = timeTxt;
 	}
@@ -119,7 +119,7 @@ class BotGUI {
 	updateZone(zone, progress, difficulty) {
 		var printString = zone;
 		if(progress !== undefined)
-			printString += " (" + (progress * 100).toFixed(2) + "% Complete)"
+			printString += " (" + (progress * 100).toFixed(2) + "% Виконано)"
 		if(progress === undefined) {
 			$J("#salienbot_zone_difficulty_div").hide();
 			difficulty = "";
@@ -329,7 +329,7 @@ var INJECT_wait_for_end = function() {
 	var time_remaining = Math.round(time_remaining_ms/1000);
 
 	// Update GUI
-	gui.updateTask("Waiting " + Math.max(time_remaining, 0) + "s for round to end", false);
+	gui.updateTask("Очікування " + Math.max(time_remaining, 0) + "сек до закінчення раунда", false);
 	gui.updateStatus(true);
 	if (target_zone != -1)
 		gui.updateEstimatedTime(calculateTimeToNextLevel());
