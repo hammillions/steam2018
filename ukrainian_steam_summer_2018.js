@@ -119,7 +119,7 @@ class BotGUI {
 	updateZone(zone, progress, difficulty) {
 		var printString = zone;
 		if(progress !== undefined)
-			printString += " (" + (progress * 100).toFixed(2) + "% Виконано)"
+			printString += " (" + (progress * 100).toFixed(2) + "% захоплено)"
 		if(progress === undefined) {
 			$J("#salienbot_zone_difficulty_div").hide();
 			difficulty = "";
@@ -329,7 +329,7 @@ var INJECT_wait_for_end = function() {
 	var time_remaining = Math.round(time_remaining_ms/1000);
 
 	// Update GUI
-	gui.updateTask("Очікування " + Math.max(time_remaining, 0) + "сек до закінчення раунда", false);
+	gui.updateTask(" " + Math.max(time_remaining, 0) + "сек до закінчення раунда", false);
 	gui.updateStatus(true);
 	if (target_zone != -1)
 		gui.updateEstimatedTime(calculateTimeToNextLevel());
