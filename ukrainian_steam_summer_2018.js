@@ -203,7 +203,7 @@ function checkUnlockGameState() {
 	var maxWait = 300; // Time (in seconds) to wait until we try to unlock the script
 	if (timeDiff < maxWait)
 		return;
-	gui.updateTask("Detected the game script is locked. Trying to unlock it.");
+	gui.updateTask("Виявлено, що ігровийй скрипт заблоковано.");
 	if (auto_switch_planet.active == true) {
 		CheckSwitchBetterPlanet(true);
 	} else {
@@ -361,7 +361,7 @@ var INJECT_end_round = function(attempt_no) {
 	var score = get_max_score();
 	
 	// Update gui
-	gui.updateTask("Ending Round");
+	gui.updateTask("Завершення раунду");
 
 	// Post our "Yay we beat the level" call
 	$J.ajax({
@@ -509,7 +509,7 @@ var INJECT_update_grid = function(error_handling) {
 				window.gGame.m_State.m_Grid.m_Tiles[zone.zone_position].Info.difficulty = zone.difficulty; 
 			});
 			last_update_grid = new Date().getTime();
-			console.log("Successfully updated map data on planet: " + current_planet_id);
+			console.log("Успішно оновлено дані карти на планеті: " + current_planet_id);
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
 			if (error_handling == true) {
@@ -544,7 +544,7 @@ function GetBestZone() {
 	var bestZoneIdx;
 	var highestDifficulty = -1;
 
-	gui.updateTask('Getting best zone');
+	gui.updateTask('Отримання найкращої зони');
 
 	for (var idx = 0; idx < window.gGame.m_State.m_Grid.m_Tiles.length; idx++) {
 		var zone = window.gGame.m_State.m_Grid.m_Tiles[idx].Info;
@@ -674,7 +674,7 @@ function SwitchNextZone(attempt_no, planet_call) {
 
 	if (next_zone !== undefined) {
 		if (next_zone != target_zone) {
-			console.log("Found new best zone: " + next_zone);
+			console.log("Знайдено нуву кращу зону: " + next_zone);
 			INJECT_start_round(next_zone, access_token, attempt_no);
 		} else {
 			console.log("Current zone #" + target_zone + " is already the best. No need to switch.");
@@ -731,7 +731,7 @@ var INJECT_switch_planet = function(planet_id, callback) {
 	if(!(gGame.m_State instanceof CBattleSelectionState))
 		return;
 
-	gui.updateTask("Attempting to move to Planet #" + planet_id);
+	gui.updateTask("Спроба перейти на планету #" + planet_id);
 
 	// Leave our current round if we haven't.
 	INJECT_leave_round();
@@ -759,7 +759,7 @@ var INJECT_switch_planet = function(planet_id, callback) {
 			if (valid_planets[i].id == planet_id)
 					found = true;
 		if(!found) {
-			gui.updateTask("Attempted to switch to an invalid planet. Please choose a new one.");
+			gui.updateTask("Спроба перейти на завершену планету. Будь ласка, оберіть іншу.");
 			gui.updateStatus(false);
 			return;
 		}
