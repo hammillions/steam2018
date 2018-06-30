@@ -5,6 +5,9 @@
 
 // ==/UserScript==
 
+
+
+
 // This is the zone you want to attack (Optional, otherwise picks one for you).
 var target_zone = -1;
 
