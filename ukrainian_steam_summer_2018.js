@@ -2,7 +2,7 @@
 
 // @version		0.0.1
 // скопійовано у ensingm2
-
+// якщо хочете входити в бій вручну, то замість всього скрипта в бою напишіть лише CEnemy.prototype.Walk = function(){this.Die(true);};
 // ==/UserScript==
 
 
@@ -13,8 +13,8 @@ var target_zone = -1;
 
 // Variables. Don't change these unless you know what you're doing.
 var real_round_length = 120; // Round Length of a real game (In Seconds, for calculating score)
-var resend_frequency = 111; // Частота, за якої ми можемо сказати, що ми закінчили раунд (може відрізнятись від реальної довжини)
-var update_length = 1; // Частота оновлення даних (в секундах)
+var resend_frequency = 121; // Частота, за якої ми можемо сказати, що ми закінчили раунд (може відрізнятись від реальної довжини)
+var update_length = 3; // Частота оновлення даних (в секундах)
 var loop_rounds = true;
 var language = "ukrainian"; // Used when POSTing scores
 var access_token = "";
@@ -108,13 +108,13 @@ class BotGUI {
 
 		var timeTxt = "";
 		if(days > 0)
-			timeTxt += days + "d ";
+			timeTxt += days + "дн ";
 		if(hours > 0 || timeTxt.length > 0)
-			timeTxt += hours + "h ";
+			timeTxt += hours + " год ";
 		if(minutes > 0 || timeTxt.length > 0)
-			timeTxt += minutes + "m ";
+			timeTxt += minutes + " хв ";
 
-		timeTxt += seconds + "s";
+		timeTxt += seconds + " сек";
 
 		document.getElementById('salienbot_esttimlvl').innerText = timeTxt;
 	}
@@ -122,7 +122,7 @@ class BotGUI {
 	updateZone(zone, progress, difficulty) {
 		var printString = zone;
 		if(progress !== undefined)
-			printString += " (" + (progress * 100).toFixed(2) + "% Complete)"
+			printString += " (" + (progress * 100).toFixed(2) + "% захоплено)"
 		if(progress === undefined) {
 			$J("#salienbot_zone_difficulty_div").hide();
 			difficulty = "";
@@ -206,7 +206,7 @@ function checkUnlockGameState() {
 	var maxWait = 300; // Time (in seconds) to wait until we try to unlock the script
 	if (timeDiff < maxWait)
 		return;
-	gui.updateTask("Detected the game script is locked. Trying to unlock it.");
+	gui.updateTask("Виявлено, що ігровийй скрипт заблоковано.");
 	if (auto_switch_planet.active == true) {
 		CheckSwitchBetterPlanet(true);
 	} else {
@@ -279,7 +279,7 @@ var INJECT_start_round = function(zone, access_token, attempt_no) {
 				}
 			}
 			else {
-				console.log("Round successfully started in zone #" + zone);
+				console.log("Раунд успішно запущено в зоні #" + zone);
 				console.log(data);
 
 				// Set target
@@ -332,7 +332,7 @@ var INJECT_wait_for_end = function() {
 	var time_remaining = Math.round(time_remaining_ms/1000);
 
 	// Update GUI
-	gui.updateTask("Waiting " + Math.max(time_remaining, 0) + "s for round to end", false);
+	gui.updateTask(" " + Math.max(time_remaining, 0) + "сек до закінчення раунда", false);
 	gui.updateStatus(true);
 	if (target_zone != -1)
 		gui.updateEstimatedTime(calculateTimeToNextLevel());
@@ -364,7 +364,7 @@ var INJECT_end_round = function(attempt_no) {
 	var score = get_max_score();
 	
 	// Update gui
-	gui.updateTask("Ending Round");
+	gui.updateTask("Завершення раунду");
 
 	// Post our "Yay we beat the level" call
 	$J.ajax({
@@ -392,8 +392,8 @@ var INJECT_end_round = function(attempt_no) {
 				}
 			}
 			else {
-				console.log("Successfully finished the round and got expected data back:");
-				console.log("Level: ", data.response.new_level, "\nEXP: ", data.response.new_score);
+				console.log("Успішно завершено раунд та отримано оновлені дані:");
+				console.log("Рівень: ", data.response.new_level, "\nEXP: ", data.response.new_score);
 				console.log(data);
 
 				// Update the player info
@@ -413,7 +413,7 @@ var INJECT_end_round = function(attempt_no) {
 			}
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			var messagesArray = ["end the round", "ending round"];
+			var messagesArray = ["end the round", "Завершення раунду"];
 			var ajaxParams = {
 				xhr: xhr, 
 				ajaxOptions: ajaxOptions, 
@@ -494,7 +494,7 @@ var INJECT_update_grid = function(error_handling) {
 			return;
 	}
 
-	gui.updateTask('Updating grid', true);
+	gui.updateTask('Оновлення сітки', true);
 
 	// GET to the endpoint
 	$J.ajax({
@@ -512,7 +512,7 @@ var INJECT_update_grid = function(error_handling) {
 				window.gGame.m_State.m_Grid.m_Tiles[zone.zone_position].Info.difficulty = zone.difficulty; 
 			});
 			last_update_grid = new Date().getTime();
-			console.log("Successfully updated map data on planet: " + current_planet_id);
+			console.log("Успішно оновлено дані карти на планеті: " + current_planet_id);
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
 			if (error_handling == true) {
@@ -547,7 +547,7 @@ function GetBestZone() {
 	var bestZoneIdx;
 	var highestDifficulty = -1;
 
-	gui.updateTask('Getting best zone');
+	gui.updateTask('Отримання найкращої зони');
 
 	for (var idx = 0; idx < window.gGame.m_State.m_Grid.m_Tiles.length; idx++) {
 		var zone = window.gGame.m_State.m_Grid.m_Tiles[idx].Info;
@@ -677,7 +677,7 @@ function SwitchNextZone(attempt_no, planet_call) {
 
 	if (next_zone !== undefined) {
 		if (next_zone != target_zone) {
-			console.log("Found new best zone: " + next_zone);
+			console.log("Знайдено нову кращу зону: " + next_zone);
 			INJECT_start_round(next_zone, access_token, attempt_no);
 		} else {
 			console.log("Current zone #" + target_zone + " is already the best. No need to switch.");
@@ -734,7 +734,7 @@ var INJECT_switch_planet = function(planet_id, callback) {
 	if(!(gGame.m_State instanceof CBattleSelectionState))
 		return;
 
-	gui.updateTask("Attempting to move to Planet #" + planet_id);
+	gui.updateTask("Спроба перейти на планету #" + planet_id);
 
 	// Leave our current round if we haven't.
 	INJECT_leave_round();
@@ -762,7 +762,7 @@ var INJECT_switch_planet = function(planet_id, callback) {
 			if (valid_planets[i].id == planet_id)
 					found = true;
 		if(!found) {
-			gui.updateTask("Attempted to switch to an invalid planet. Please choose a new one.");
+			gui.updateTask("Спроба перейти на завершену планету. Будь ласка, оберіть іншу.");
 			gui.updateStatus(false);
 			return;
 		}
@@ -958,7 +958,7 @@ var INJECT_init_planet_selection = function() {
 
 	// Update GUI
 	gui.updateStatus(false);
-	gui.updateTask("At Planet Selection");
+	gui.updateTask("Оберіть планету");
 	gui.updateZone("None");
 };
 
