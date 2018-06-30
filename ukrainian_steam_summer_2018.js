@@ -386,7 +386,7 @@ var INJECT_end_round = function(attempt_no) {
 				}
 				else {
 					console.log("Error getting zone response (on end):",data);
-					gui.updateTask("Waiting 5s and re-sending score (Attempt #" + (attempt_no + 1) + ").");
+					gui.updateTask("Очікуємо 5 секунд і повторимо спробу отримання даних про зони (Спроба #" + (attempt_no + 1) + ").");
 					clearTimeout(current_timeout);
 					current_timeout = setTimeout(function() { INJECT_end_round(attempt_no+1); }, 5000);
 				}
@@ -403,7 +403,7 @@ var INJECT_end_round = function(attempt_no) {
 				gui.updateLevel(data.response.new_level);
 				gui.updateExp(data.response.new_score + " / " + data.response.next_level_score);
 				gui.updateEstimatedTime(calculateTimeToNextLevel());
-				gui.updateZone("None");
+				gui.updateZone("не обрано");
 
 				// Restart the round if we have that variable set
 				if(loop_rounds) {
@@ -551,7 +551,7 @@ function GetBestZone() {
 
 	for (var idx = 0; idx < window.gGame.m_State.m_Grid.m_Tiles.length; idx++) {
 		var zone = window.gGame.m_State.m_Grid.m_Tiles[idx].Info;
-		if (!zone.captured && !zone.boss) {
+		if (!zone.captured && !zone.boss && zone.progress > 0) {
 			/*if (zone.boss) {
 				console.log("Zone " + idx + " with boss. Switching to it.");
 				return idx;
@@ -773,7 +773,7 @@ var INJECT_switch_planet = function(planet_id, callback) {
 				wait_for_state_load();
 			},
 			function ( response ) {
-				ShowAlertDialog( 'Join Planet Error', 'Failed to join planet. Please reload your game or try again shortly.' );
+				ShowAlertDialog( "Помилка з'єднання з Планетою", "Не вдалося приєднатися до планети. Будь ласка, оновіть свою гру чи незабаром спробуйте ще раз." );
 			});
 	}
 }
