@@ -27,7 +27,7 @@ var check_game_state = undefined; // Check the state of the game script and unlo
 var auto_switch_planet = {
 	"active": true, // Вкл\викл автоматичний перехід на найкращу планету (true : так, false : ні)
 	"current_difficulty": undefined,
-	"wanted_difficulty": 3, // Складність якій надавати перевагу. Буде перевіряти планети, якщо поточна складність відрізняється
+	"wanted_difficulty": 2, // Складність якій надавати перевагу. Буде перевіряти планети, якщо поточна складність відрізняється
 	"rounds_before_check": 3, // Якщо ми не знаходимо жодної зони з потрібною складністю, ми почнемо наступну перевірку через зазначену кількість раундів
 	"current_round": 0
 };
@@ -548,11 +548,14 @@ function GetBestZone() {
 
 	for (var idx = 0; idx < window.gGame.m_State.m_Grid.m_Tiles.length; idx++) {
 		var zone = window.gGame.m_State.m_Grid.m_Tiles[idx].Info;
-		if (!zone.captured) {
-			if (zone.boss) {
+		
+		
+		
+		if (!zone.captured && !zone.boss) {
++			/*if (zone.boss) {
 				console.log("Zone " + idx + " with boss. Switching to it.");
 				return idx;
-			}
+			}*/
 
 			if(zone.difficulty > highestDifficulty) {
 				highestDifficulty = zone.difficulty;
@@ -955,7 +958,7 @@ var INJECT_init_planet_selection = function() {
 
 	// Update GUI
 	gui.updateStatus(false);
-	gui.updateTask("At Planet Selection");
+	gui.updateTask("Оберіть планету");
 	gui.updateZone("None");
 };
 
