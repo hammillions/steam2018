@@ -13,17 +13,16 @@ var target_zone = -1;
 
 // Variables. Don't change these unless you know what you're doing.
 var real_round_length = 120; // Round Length of a real game (In Seconds, for calculating score)
-var resend_frequency = 121; // Частота, за якої ми можемо сказати, що ми закінчили раунд (може відрізнятись від реальної довжини)
-var update_length = 3; // Частота оновлення даних (в секундах)
+var resend_frequency = 96; // Частота, за якої ми можемо сказати, що ми закінчили раунд (може відрізнятись від реальної довжини)
+var update_length = 16; // Частота оновлення даних (в секундах)
 var loop_rounds = true;
 var language = "ukrainian"; // Used when POSTing scores
 var access_token = "";
-var account_id = undefined; // Used to get data back in boss battles
 var current_game_id = undefined;
 var current_game_start = undefined; // Timestamp for when the current game started
 var time_passed_ms = 0;
 var current_timeout = undefined;
-var max_retry = 5; // Максимальна кількість спроб надсилати запити
+var max_retry = 11; // Максимальна кількість спроб надсилати запити
 var auto_first_join = true; // При старті автоматично приєднуйтесь до найкращої зони (true : так, false : ні)
 var current_planet_id = undefined;
 var last_update_grid = undefined; // Last time we updated the grid (to avoid too frequent calls)
@@ -41,10 +40,10 @@ var boss_options = {
 	"update_freq": 5, // Number of seconds between calls to ReportBossDamage
 	"report_interval": undefined,
 	"error_count": 0,
-	"last_heal": undefined
+	"last_heal": undefined,
+	"battles_joined": [] // Boss battles already joined (you can't enter more than once)
 }
-var current_game_is_boss = false; // Нападати на Боса чи Ні
-var avoid_boss = false; // true - якщо ви майже lvl 25, щоб ви могли отримати свої решту елементів на рівні.
+var current_game_is_boss = false; // State if we're entering / in a boss battle or not
 
 class BotGUI {
 	constructor(state) {
@@ -116,17 +115,18 @@ class BotGUI {
 
 		var timeTxt = "";
 		if(days > 0)
-			timeTxt += days + " дн ";
+			timeTxt += days + "дн ";
 		if(hours > 0 || timeTxt.length > 0)
 			timeTxt += hours + " год ";
 		if(minutes > 0 || timeTxt.length > 0)
 			timeTxt += minutes + " хв ";
 
 		timeTxt += seconds + " сек";
-		
+
 		document.getElementById('salienbot_esttimlvl').innerText = timeTxt;
 	}
 
+	
 	updateZone(zone, progress, difficulty, is_boss_battle) {
 		var printString = zone;
 		if(is_boss_battle === undefined)
@@ -220,7 +220,7 @@ function checkUnlockGameState() {
 	var maxWait = 300; // Time (in seconds) to wait until we try to unlock the script
 	if ((current_game_is_boss == false && timeDiff < maxWait) || current_game_is_boss == true && timeDiff < (maxWait*20))
 		return;
-	gui.updateTask("Виявлено, що ігровий скрипт заблоковано.");
+	gui.updateTask("Виявлено, що ігровийй скрипт заблоковано.");
 	if (auto_switch_planet.active == true) {
 		CheckSwitchBetterPlanet(true);
 	} else {
@@ -330,6 +330,7 @@ var INJECT_start_round = function(zone, access_token, attempt_no, is_boss_battle
 				
 				if(is_boss_battle) {
 					boss_options.error_count = 0;
+					boss_options.battles_joined.push(target_zone);
 					boss_options.report_interval = setInterval(function() { INJECT_report_boss_damage(); }, boss_options.update_freq*1000);
 				} else {
 					INJECT_wait_for_end(resend_frequency);
@@ -358,22 +359,14 @@ var INJECT_report_boss_damage = function() {
 			results.response.boss_status.boss_players.forEach( function(player) {
 				if (player.accountid == account_id) {
 					if (player.hp > 0) {
-						if ((parseInt(gPlayerInfo.score) + parseInt(player.xp_earned)) >= 26390000) {
-							avoid_boss = true;
-							gui.updateTask("You're very close to reach level 25. Exiting boss fight to prevent you to not get level-based items.");
-							end_game();
-						} else {
-							gui.updateTask("In boss battle. Boss HP left: " + results.response.boss_status.boss_hp + ". EXP earned: " + player.xp_earned + ". HP left: " + player.hp);
-						}
+						gui.updateTask("In boss battle. Boss HP left : " + results.response.boss_status.boss_hp + ". EXP earned : " + player.xp_earned);
 					} else {
-						gui.updateTask("Ви померли, закінчивши бій з босом. HP, що залишилось у Боса: " + results.response.boss_status.boss_hp + ". Отримано ОП: " + player.xp_earned);
+						gui.updateTask("You died, ending boss fight. Boss HP left : " + results.response.boss_status.boss_hp + ". EXP earned : " + player.xp_earned);
 						end_game();
 					}
-					if (player.time_last_heal !== undefined)
-						boss_options.last_heal = player.time_last_heal;
+					boss_options.last_heal = (player.time_last_heal !== undefined) ? player.time_last_heal : undefined;
 				}
 			});
-		gui.progressbar.SetValue((results.response.boss_status.boss_max_hp - results.response.boss_status.boss_hp) / results.response.boss_status.boss_max_hp);
 		}
 	}
 	function error(results, eresult) {
@@ -383,10 +376,9 @@ var INJECT_report_boss_damage = function() {
 			boss_options.error_count++;
 	}
 	function end_game() {
-		gui.updateTask("Бій з Босом закінчився. Пошук нової планети / зони.");
+		gui.updateTask("Boss battle finished. Searching a new planet / zone.");
 		clearInterval(boss_options.report_interval);
 		boss_options.report_interval = undefined;
-		boss_options.last_heal = undefined;
 		INJECT_leave_round();
 		
 		if (auto_switch_planet.active == true)
@@ -398,9 +390,7 @@ var INJECT_report_boss_damage = function() {
 	var damageDone = Math.floor(Math.random() * 40);
 	var damageTaken = 0;
 	var now = (new Date().getTime()) / 1000;
-	if (boss_options.last_heal === undefined)
-		boss_options.last_heal = now - Math.floor(Math.random() * 40);
-	var healDiff = now - boss_options.last_heal;
+	var healDiff = (boss_options.last_heal !== undefined) ? (now - boss_options.last_heal) : 120;
 	var useHealing = (healDiff >= 120) ? 1 : 0;
 	gServer.ReportBossDamage(damageDone, damageTaken, useHealing, success, error);
 }
@@ -413,7 +403,7 @@ var INJECT_wait_for_end = function() {
 	var time_remaining = Math.round(time_remaining_ms/1000);
 
 	// Update GUI
-	gui.updateTask(" " + Math.max(time_remaining, 0) + " сек до закінчення раунда", false);
+	gui.updateTask(" " + Math.max(time_remaining, 0) + "сек до закінчення раунда", false);
 	gui.updateStatus(true);
 	if (target_zone != -1)
 		gui.updateEstimatedTime(calculateTimeToNextLevel());
@@ -467,7 +457,7 @@ var INJECT_end_round = function(attempt_no) {
 				}
 				else {
 					console.log("Error getting zone response (on end):",data);
-					gui.updateTask("Очікуємо 5 секунд до повторної спроби отримання даних (Спроба #" + (attempt_no + 1) + ").");
+					gui.updateTask("Очікуємо 5 секунд і повторимо спробу отримання даних про зони (Спроба #" + (attempt_no + 1) + ").");
 					clearTimeout(current_timeout);
 					current_timeout = setTimeout(function() { INJECT_end_round(attempt_no+1); }, 5000);
 				}
@@ -486,18 +476,15 @@ var INJECT_end_round = function(attempt_no) {
 				gui.updateEstimatedTime(calculateTimeToNextLevel());
 				gui.updateZone("не обрано");
 
-				// Avoid bosses if we're near level 25
-				avoid_boss = (gPlayerInfo.score >= 26390000 && gPlayerInfo.score < 26400000);
-				
 				// Restart the round if we have that variable set
 				if(loop_rounds) {
 					current_game_id = undefined;
-					SwitchNextZone();
+					INJECT_start_round(target_zone, access_token)
 				}
 			}
 		},
 		error: function (xhr, ajaxOptions, thrownError) {
-			var messagesArray = ["раунд закінчено", "Завершення раунду"];
+			var messagesArray = ["end the round", "Завершення раунду"];
 			var ajaxParams = {
 				xhr: xhr, 
 				ajaxOptions: ajaxOptions, 
@@ -710,9 +697,9 @@ function GetBestPlanet() {
 				data.response.planets[0].zones.forEach( function ( zone ) {
 					if (zone.difficulty >= 1 && zone.difficulty <= 7 && zone.captured == false) {
 						var zoneProgress = (zone.capture_progress === undefined) ? 0 : zone.capture_progress;
-						var zoneScore = Math.ceil(Math.pow(10, (zone.difficulty - 1) * 2) * (1 - zoneProgress)) + ((zone.boss_active && !avoid_boss) ? 10000000000 : 0);
+						var zoneScore = Math.ceil(Math.pow(10, (zone.difficulty - 1) * 2) * (1 - zoneProgress)) + ((zone.boss_active && !boss_options.battles_joined.includes(zone.zone_position)) ? 10000000000 : 0);
 						activePlanetsScore[planet_id] += isNaN(zoneScore) ? 0 : zoneScore;
-						if (zone.boss_active == true && !avoid_boss)
+						if (zone.boss_active == true && !boss_options.battles_joined.includes(zone.zone_position))
 							bossSpawned = true;
 						if (zone.difficulty > planetsMaxDifficulty[planet_id])
 							planetsMaxDifficulty[planet_id] = zone.difficulty;
@@ -1054,9 +1041,6 @@ var INJECT_init_planet_selection = function() {
 var INJECT_init = function() {
 	// Set Account ID
 	account_id = gAccountID;
-	
-	// Avoid bosses if we're near level 25
-	avoid_boss = (gPlayerInfo.score >= 26390000 && gPlayerInfo.score < 26400000);
 	
 	if (gGame.m_State instanceof CBattleSelectionState)
 		INJECT_init_battle_selection();
