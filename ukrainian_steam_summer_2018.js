@@ -18,7 +18,7 @@ var update_length = 3; // Частота оновлення даних (в се�
 var loop_rounds = true;
 var language = "ukrainian"; // Used when POSTing scores
 var access_token = "";
-account_id = undefined; // Used to get data back in boss battles
+var account_id = undefined; // Used to get data back in boss battles
 var current_game_id = undefined;
 var current_game_start = undefined; // Timestamp for when the current game started
 var time_passed_ms = 0;
@@ -43,7 +43,7 @@ var boss_options = {
 	"last_report": undefined, // Used in the check of the game script state and unlock it if needed 
 	"current_max_hp": undefined // Used in damages calculation
 }
-var current_game_is_boss = false; // State if we're entering / in a boss battle or not
+var current_game_is_boss = true; // State if we're entering / in a boss battle or not
 
 class BotGUI {
 	constructor(state) {
@@ -106,7 +106,7 @@ class BotGUI {
 
 	updateEstimatedTime(secondsLeft) {
 		if (secondsLeft == -1) {
-			document.getElementById('salienbot_esttimlvl').innerText = "Max level reached";
+			document.getElementById('salienbot_esttimlvl').innerText = "Максимальний рівень досягнуто";
 			return;
 		}
 		let date = new Date(null);
@@ -196,7 +196,7 @@ function initGUI(){
 				$J("#salienbot_gui").height(30);
 			}
 			else {
-				$J("#gui_minimize_toggle").text("Collapse [-]");
+				$J("#gui_minimize_toggle").text("закрити [-]");
 				$J("#salienbot_gui").height("auto");
 			}
 
@@ -387,6 +387,15 @@ var INJECT_report_boss_damage = function() {
 						gui.updateTask("Ви померли. У Боса залишилось життя: " + results.response.boss_status.boss_hp + ". ОД зароблено : " + player.xp_earned);
 						end_game();
 					}
+					
+					// Update GUI
+					gui.updateLevel(player.new_level);
+					var total_exp = parseInt(player.score_on_join) + player.xp_earned;
+					if (gPlayerInfo.level == 25)
+						gui.updateExp(total_exp + " / Infinite");
+					else
+						gui.updateExp(total_exp + " / " + player.next_level_score);
+					gui.updateEstimatedTime(calculateTimeToNextLevel());
 				}
 			});
 			gui.progressbar.SetValue((results.response.boss_status.boss_max_hp - results.response.boss_status.boss_hp) / results.response.boss_status.boss_max_hp);
